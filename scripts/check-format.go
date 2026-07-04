@@ -74,6 +74,61 @@ func main() {
 			path:        filepath.Join(repoRoot, ".zed/devsync.md"),
 			frontmatter: false,
 		},
+		{
+			name:        "OpenCode Command",
+			path:        filepath.Join(repoRoot, ".opencode/commands/devsync.md"),
+			frontmatter: true,
+			required: map[string]string{
+				"description": "description of the command",
+			},
+		},
+		{
+			name:        "Cursor Command",
+			path:        filepath.Join(repoRoot, ".cursor/commands/devsync.md"),
+			frontmatter: false,
+		},
+		{
+			name:        "Windsurf Command",
+			path:        filepath.Join(repoRoot, ".windsurf/workflows/devsync.md"),
+			frontmatter: false,
+		},
+		{
+			name:        "Cline Command",
+			path:        filepath.Join(repoRoot, ".cline/skills/devsync/SKILL.md"),
+			frontmatter: true,
+			required: map[string]string{
+				"name":        "name of the skill",
+				"description": "description of the skill",
+			},
+		},
+		{
+			name:        "Claude Code Command",
+			path:        filepath.Join(repoRoot, ".claude/skills/devsync/SKILL.md"),
+			frontmatter: true,
+			required: map[string]string{
+				"name":        "name of the skill",
+				"description": "description of the skill",
+			},
+		},
+		{
+			name:        "GitHub Copilot Editor Command",
+			path:        filepath.Join(repoRoot, ".github/prompts/devsync.prompt.md"),
+			frontmatter: false,
+		},
+		{
+			name:        "Gemini CLI Command",
+			path:        filepath.Join(repoRoot, ".gemini/commands/devsync.toml"),
+			frontmatter: false,
+		},
+		{
+			name:        "Kiro Command",
+			path:        filepath.Join(repoRoot, ".kiro/steering/devsync-cmd.md"),
+			frontmatter: true,
+			required: map[string]string{
+				"title":     "title of the command",
+				"inclusion": "inclusion mode (e.g. 'manual')",
+			},
+		},
 	}
 
 	failed := false

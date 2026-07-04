@@ -7,18 +7,20 @@ import (
 	"strings"
 )
 
+type copy struct {
+	path          string
+	hasFrontmatter bool
+}
+
 func main() {
 	repoRoot := filepath.Join("..")
 
-	skillPath := filepath.Join(repoRoot, "SKILL.md")
-	canonical := readAndStripFrontmatter(skillPath)
+	failed := false
 
-	type copy struct {
-		path          string
-		hasFrontmatter bool
-	}
+	// --- Skill copies ---
+	skillCanonical := readAndStripFrontmatter(filepath.Join(repoRoot, "SKILL.md"))
 
-	copies := []copy{
+	skillCopies := []copy{
 		{path: filepath.Join(repoRoot, ".cursor/rules/devsync.mdc"), hasFrontmatter: true},
 		{path: filepath.Join(repoRoot, ".windsurf/rules/devsync.md"), hasFrontmatter: false},
 		{path: filepath.Join(repoRoot, ".clinerules/devsync.md"), hasFrontmatter: false},
@@ -29,8 +31,8 @@ func main() {
 		{path: filepath.Join(repoRoot, ".opencode/skills/devsync/SKILL.md"), hasFrontmatter: true},
 	}
 
-	failed := false
-	for _, c := range copies {
+	fmt.Println("--- Skill copies ---")
+	for _, c := range skillCopies {
 		var body string
 		if c.hasFrontmatter {
 			body = readAndStripFrontmatter(c.path)
@@ -44,7 +46,7 @@ func main() {
 			body = strings.TrimSpace(string(raw))
 		}
 
-		if body != canonical {
+		if body != skillCanonical {
 			fmt.Fprintf(os.Stderr, "DRIFT: %s does not match SKILL.md body\n", c.path)
 			failed = true
 		} else {
@@ -52,11 +54,56 @@ func main() {
 		}
 	}
 
+	// --- Command copies ---
+	cmdCanonical := readAndStripFrontmatter(filepath.Join(repoRoot, "commands/devsync.md"))
+
+	type cmdCopy struct {
+		path          string
+		hasFrontmatter bool
+		isTOML         bool
+	}
+
+	cmdCopies := []cmdCopy{
+		{path: filepath.Join(repoRoot, ".cursor/commands/devsync.md"), hasFrontmatter: false},
+		{path: filepath.Join(repoRoot, ".windsurf/workflows/devsync.md"), hasFrontmatter: false},
+		{path: filepath.Join(repoRoot, ".cline/skills/devsync/SKILL.md"), hasFrontmatter: true},
+		{path: filepath.Join(repoRoot, ".claude/skills/devsync/SKILL.md"), hasFrontmatter: true},
+		{path: filepath.Join(repoRoot, ".github/prompts/devsync.prompt.md"), hasFrontmatter: false},
+		{path: filepath.Join(repoRoot, ".gemini/commands/devsync.toml"), hasFrontmatter: false, isTOML: true},
+		{path: filepath.Join(repoRoot, ".kiro/steering/devsync-cmd.md"), hasFrontmatter: true},
+		{path: filepath.Join(repoRoot, ".opencode/commands/devsync.md"), hasFrontmatter: true},
+	}
+
+	fmt.Println("\n--- Command copies ---")
+	for _, c := range cmdCopies {
+		var body string
+		if c.isTOML {
+			body = readTOMLPrompt(c.path)
+		} else if c.hasFrontmatter {
+			body = readAndStripFrontmatter(c.path)
+		} else {
+			raw, err := os.ReadFile(c.path)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "ERROR: cannot read %s: %v\n", c.path, err)
+				failed = true
+				continue
+			}
+			body = strings.TrimSpace(string(raw))
+		}
+
+		if body != cmdCanonical {
+			fmt.Fprintf(os.Stderr, "DRIFT: %s does not match commands/devsync.md body\n", c.path)
+			failed = true
+		} else {
+			fmt.Printf("OK: %s\n", c.path)
+		}
+	}
+
 	if failed {
-		fmt.Fprintln(os.Stderr, "\nOne or more copies drifted from SKILL.md body. Update them manually.")
+		fmt.Fprintln(os.Stderr, "\nOne or more copies drifted. Update them manually.")
 		os.Exit(1)
 	}
-	fmt.Println("\nAll copies match SKILL.md body.")
+	fmt.Println("\nAll copies match their canonical sources.")
 }
 
 func readAndStripFrontmatter(path string) string {
@@ -76,4 +123,31 @@ func readAndStripFrontmatter(path string) string {
 	}
 
 	return strings.TrimSpace(content)
+}
+
+func readTOMLPrompt(path string) string {
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "ERROR: cannot read %s: %v\n", path, err)
+		os.Exit(1)
+	}
+
+	content := string(raw)
+
+	start := strings.Index(content, `prompt = """`)
+	if start == -1 {
+		fmt.Fprintf(os.Stderr, "ERROR: cannot find prompt field in %s\n", path)
+		os.Exit(1)
+	}
+
+	start += len(`prompt = """`)
+	end := strings.Index(content[start:], `"""`)
+	if end == -1 {
+		fmt.Fprintf(os.Stderr, "ERROR: unclosed prompt field in %s\n", path)
+		os.Exit(1)
+	}
+
+	body := content[start : start+end]
+	body = strings.ReplaceAll(body, "{{args}}", "$1")
+	return strings.TrimSpace(body)
 }
