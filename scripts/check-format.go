@@ -71,8 +71,12 @@ func main() {
 		},
 		{
 			name:        "Zed",
-			path:        filepath.Join(repoRoot, ".zed/devsync.md"),
-			frontmatter: false,
+			path:        filepath.Join(repoRoot, ".agents/skills/devsync/SKILL.md"),
+			frontmatter: true,
+			required: map[string]string{
+				"name":        "name of the skill",
+				"description": "description of the skill",
+			},
 		},
 		{
 			name:        "OpenCode Command",
@@ -127,6 +131,61 @@ func main() {
 			required: map[string]string{
 				"title":     "title of the command",
 				"inclusion": "inclusion mode (e.g. 'manual')",
+			},
+		},
+		{
+			name:        "Cursor Commit Command",
+			path:        filepath.Join(repoRoot, ".cursor/commands/devsync-commit.md"),
+			frontmatter: false,
+		},
+		{
+			name:        "Windsurf Commit Command",
+			path:        filepath.Join(repoRoot, ".windsurf/workflows/devsync-commit.md"),
+			frontmatter: false,
+		},
+		{
+			name:        "Cline Commit Command",
+			path:        filepath.Join(repoRoot, ".cline/skills/devsync-commit/SKILL.md"),
+			frontmatter: true,
+			required: map[string]string{
+				"name":        "name of the skill",
+				"description": "description of the skill",
+			},
+		},
+		{
+			name:        "Claude Code Commit Command",
+			path:        filepath.Join(repoRoot, ".claude/skills/devsync-commit/SKILL.md"),
+			frontmatter: true,
+			required: map[string]string{
+				"name":        "name of the skill",
+				"description": "description of the skill",
+			},
+		},
+		{
+			name:        "GitHub Copilot Editor Commit Command",
+			path:        filepath.Join(repoRoot, ".github/prompts/devsync-commit.prompt.md"),
+			frontmatter: false,
+		},
+		{
+			name:        "Gemini CLI Commit Command",
+			path:        filepath.Join(repoRoot, ".gemini/commands/devsync-commit.toml"),
+			frontmatter: false,
+		},
+		{
+			name:        "Kiro Commit Command",
+			path:        filepath.Join(repoRoot, ".kiro/steering/devsync-commit-cmd.md"),
+			frontmatter: true,
+			required: map[string]string{
+				"title":     "title of the command",
+				"inclusion": "inclusion mode (e.g. 'manual')",
+			},
+		},
+		{
+			name:        "OpenCode Commit Command",
+			path:        filepath.Join(repoRoot, ".opencode/commands/devsync-commit.md"),
+			frontmatter: true,
+			required: map[string]string{
+				"description": "description of the command",
 			},
 		},
 	}

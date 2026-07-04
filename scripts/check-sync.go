@@ -12,6 +12,12 @@ type copy struct {
 	hasFrontmatter bool
 }
 
+type cmdCopy struct {
+	path          string
+	hasFrontmatter bool
+	isTOML         bool
+}
+
 func main() {
 	repoRoot := filepath.Join("..")
 
@@ -27,7 +33,7 @@ func main() {
 		{path: filepath.Join(repoRoot, ".github/copilot-instructions.md"), hasFrontmatter: false},
 		{path: filepath.Join(repoRoot, ".kiro/steering/devsync.md"), hasFrontmatter: true},
 		{path: filepath.Join(repoRoot, ".agents/rules/devsync.md"), hasFrontmatter: false},
-		{path: filepath.Join(repoRoot, ".zed/devsync.md"), hasFrontmatter: false},
+		{path: filepath.Join(repoRoot, ".agents/skills/devsync/SKILL.md"), hasFrontmatter: true},
 		{path: filepath.Join(repoRoot, ".opencode/skills/devsync/SKILL.md"), hasFrontmatter: true},
 	}
 
@@ -54,14 +60,8 @@ func main() {
 		}
 	}
 
-	// --- Command copies ---
+	// --- Command copies: devsync ---
 	cmdCanonical := readAndStripFrontmatter(filepath.Join(repoRoot, "commands/devsync.md"))
-
-	type cmdCopy struct {
-		path          string
-		hasFrontmatter bool
-		isTOML         bool
-	}
 
 	cmdCopies := []cmdCopy{
 		{path: filepath.Join(repoRoot, ".cursor/commands/devsync.md"), hasFrontmatter: false},
@@ -74,30 +74,25 @@ func main() {
 		{path: filepath.Join(repoRoot, ".opencode/commands/devsync.md"), hasFrontmatter: true},
 	}
 
-	fmt.Println("\n--- Command copies ---")
-	for _, c := range cmdCopies {
-		var body string
-		if c.isTOML {
-			body = readTOMLPrompt(c.path)
-		} else if c.hasFrontmatter {
-			body = readAndStripFrontmatter(c.path)
-		} else {
-			raw, err := os.ReadFile(c.path)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "ERROR: cannot read %s: %v\n", c.path, err)
-				failed = true
-				continue
-			}
-			body = strings.TrimSpace(string(raw))
-		}
+	fmt.Println("\n--- Command copies: devsync ---")
+	checkCmdCopies(cmdCopies, cmdCanonical, "commands/devsync.md", &failed)
 
-		if body != cmdCanonical {
-			fmt.Fprintf(os.Stderr, "DRIFT: %s does not match commands/devsync.md body\n", c.path)
-			failed = true
-		} else {
-			fmt.Printf("OK: %s\n", c.path)
-		}
+	// --- Command copies: devsync-commit ---
+	cmdCommitCanonical := readAndStripFrontmatter(filepath.Join(repoRoot, "commands/devsync-commit.md"))
+
+	cmdCommitCopies := []cmdCopy{
+		{path: filepath.Join(repoRoot, ".cursor/commands/devsync-commit.md"), hasFrontmatter: false},
+		{path: filepath.Join(repoRoot, ".windsurf/workflows/devsync-commit.md"), hasFrontmatter: false},
+		{path: filepath.Join(repoRoot, ".cline/skills/devsync-commit/SKILL.md"), hasFrontmatter: true},
+		{path: filepath.Join(repoRoot, ".claude/skills/devsync-commit/SKILL.md"), hasFrontmatter: true},
+		{path: filepath.Join(repoRoot, ".github/prompts/devsync-commit.prompt.md"), hasFrontmatter: false},
+		{path: filepath.Join(repoRoot, ".gemini/commands/devsync-commit.toml"), hasFrontmatter: false, isTOML: true},
+		{path: filepath.Join(repoRoot, ".kiro/steering/devsync-commit-cmd.md"), hasFrontmatter: true},
+		{path: filepath.Join(repoRoot, ".opencode/commands/devsync-commit.md"), hasFrontmatter: true},
 	}
+
+	fmt.Println("\n--- Command copies: devsync-commit ---")
+	checkCmdCopies(cmdCommitCopies, cmdCommitCanonical, "commands/devsync-commit.md", &failed)
 
 	if failed {
 		fmt.Fprintln(os.Stderr, "\nOne or more copies drifted. Update them manually.")
@@ -150,4 +145,30 @@ func readTOMLPrompt(path string) string {
 	body := content[start : start+end]
 	body = strings.ReplaceAll(body, "{{args}}", "$1")
 	return strings.TrimSpace(body)
+}
+
+func checkCmdCopies(copies []cmdCopy, canonical string, label string, failed *bool) {
+	for _, c := range copies {
+		var body string
+		if c.isTOML {
+			body = readTOMLPrompt(c.path)
+		} else if c.hasFrontmatter {
+			body = readAndStripFrontmatter(c.path)
+		} else {
+			raw, err := os.ReadFile(c.path)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "ERROR: cannot read %s: %v\n", c.path, err)
+				*failed = true
+				continue
+			}
+			body = strings.TrimSpace(string(raw))
+		}
+
+		if body != canonical {
+			fmt.Fprintf(os.Stderr, "DRIFT: %s does not match %s body\n", c.path, label)
+			*failed = true
+		} else {
+			fmt.Printf("OK: %s\n", c.path)
+		}
+	}
 }

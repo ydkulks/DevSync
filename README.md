@@ -6,12 +6,13 @@ DevSync guides developers through codebase changes using Socratic questioning �
 
 ## Single source of truth
 
-Two canonical sources are verified by `make check`:
+Three canonical sources are verified by `make check`:
 
 | Source | Purpose | Provider copies |
 |--------|---------|----------------|
 | `SKILL.md` | Socratic questioning skill (always-on) | 8 agent rule files |
 | `commands/devsync.md` | `/devsync <path>` command (on-demand) | 8 provider command files |
+| `commands/devsync-commit.md` | `/devsync-commit <ref>` command (on-demand) | 8 provider command files |
 
 Edit either source, then run:
 
@@ -26,11 +27,11 @@ make check
 | **Cursor** | `.cursor/rules/devsync.mdc` | Auto-loaded rule |
 | **Windsurf** | `.windsurf/rules/devsync.md` | Auto-loaded rule |
 | **Cline** | `.clinerules/devsync.md` | Auto-loaded rule |
-| **GitHub Copilot** | `.github/copilot-instructions.md` (+ `.github/prompts/devsync.prompt.md` for `/devsync`) | Auto-loaded instructions + command |
+| **GitHub Copilot** | `.github/copilot-instructions.md` (+ `.github/prompts/` for commands) | Auto-loaded instructions + commands |
 | **Claude Code** | `.agents/rules/devsync.md` | Auto-loaded rule |
 | **OpenCode** | `.opencode/skills/devsync/SKILL.md` | Registered skill + frontmatter |
 | **Kiro** | `.kiro/steering/devsync.md` | Auto-loaded steering |
-| **Zed** | `.zed/devsync.md` | Auto-loaded instructions |
+| **Zed** | `.agents/skills/devsync/SKILL.md` (also reads `.github/copilot-instructions.md`) | Skill (on-demand via `/devsync`) + auto-loaded rules |
 | **Gemini CLI** | `gemini-extension.json` (points at `SKILL.md`) | Extension install |
 
 ### Cursor
@@ -47,10 +48,11 @@ Copy `.clinerules/` into your project root.
 
 ### GitHub Copilot
 
-Copy these two files into your project — **do not** copy the entire `.github/` directory:
+Copy these three files into your project — **do not** copy the entire `.github/` directory:
 
 - `.github/copilot-instructions.md` — always-on instructions
 - `.github/prompts/devsync.prompt.md` — `/devsync` command
+- `.github/prompts/devsync-commit.prompt.md` — `/devsync-commit` command
 
 `.github/` also contains `.github/workflows/check.yml` (CI workflow for this repo), which should not be copied into other projects.
 
@@ -68,7 +70,11 @@ Copy `.kiro/steering/` into your project root, or to `~/.kiro/steering/` for glo
 
 ### Zed
 
-Copy `.zed/devsync.md` into your project root.
+Zed auto-loads `.github/copilot-instructions.md` as project rules (already covered above). For the on-demand skill:
+
+Copy `.agents/skills/` into your project root, or symlink from `~/.agents/skills/` for global use.
+
+Zed does not support custom slash commands — use `/devsync` in the agent panel to invoke the skill.
 
 ### Gemini CLI
 
@@ -78,18 +84,18 @@ gemini extensions install https://github.com/yd/devsync
 
 ## Commands
 
-Most providers support `/devsync <path>` for on-demand Socratic walkthroughs:
+Most providers support two commands for on-demand Socratic walkthroughs:
 
-| Provider | Invocation |
-|----------|-----------|
-| **Cursor** | `/devsync` |
-| **Windsurf** | `/devsync` |
-| **Cline** | `/devsync` |
-| **Claude Code** | `/devsync` |
-| **GitHub Copilot Editor** | `/devsync` |
-| **OpenCode** | `/devsync` |
-| **Kiro** | `/devsync` |
-| **Gemini CLI** | `/devsync` |
+| Provider | Path walkthrough | Commit walkthrough |
+|----------|-----------------|-------------------|
+| **Cursor** | `/devsync` | `/devsync-commit` |
+| **Windsurf** | `/devsync` | `/devsync-commit` |
+| **Cline** | `/devsync` | `/devsync-commit` |
+| **Claude Code** | `/devsync` | `/devsync-commit` |
+| **GitHub Copilot Editor** | `/devsync` | `/devsync-commit` |
+| **OpenCode** | `/devsync` | `/devsync-commit` |
+| **Kiro** | `/devsync` | `/devsync-commit` |
+| **Gemini CLI** | `/devsync` | `/devsync-commit` |
 
 Zed and GitHub Copilot CLI do not support custom slash commands.
 

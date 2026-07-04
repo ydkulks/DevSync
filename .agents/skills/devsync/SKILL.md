@@ -1,3 +1,9 @@
+---
+name: devsync
+description: Guide developers through codebase changes using Socratic questioning to ensure deep understanding before proceeding
+disable-model-invocation: true
+---
+
 ## What I do
 
 Before making or reviewing any code change, I help developers understand what is happening and why — by asking questions, not delivering lectures.
